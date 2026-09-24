@@ -11,14 +11,14 @@ import sys
 import datetime
 import json
 
-# ---- parameters (Assignment 2 will change only this block) ----
-SEED = 21000000          # <-- replace with your actual roll number
+#parameters 
+SEED = 21000000          #replace with your actual roll number
 N_USERS = 5_000
 N_VIDEOS = 20_000
 N_IMPRESSIONS = 300_000
 N_AGENT_SESSIONS = 2_000
 SCALE = 1                # A2: set to 50
-# -----------------------------------------------------------------
+
 
 random.seed(SEED)
 
@@ -57,7 +57,7 @@ def main():
     cur = conn.cursor()
 
     try:
-        # ---------------- Users & Interests ----------------
+        #  Users & Interests 
         categories = ["comedy", "cooking", "fitness", "music", "gaming",
                       "study_tips", "fashion", "sports", "travel", "pets"]
         for i, name in enumerate(categories, start=1):
@@ -112,7 +112,7 @@ def main():
                     (uid, inferred_cat, iso(created + datetime.timedelta(weeks=random.randint(1, n_weeks)))),
                 )
 
-        # ---------------- Creators & tiers ----------------
+        # Creators & tiers 
         # ~15% of users are creators (own at least one video, get a tier history)
         creator_ids = random.sample(range(1, n_users + 1), k=int(n_users * 0.15))
         tier_period_id = 1
@@ -130,9 +130,9 @@ def main():
                 if end:
                     start = datetime.datetime.strptime(end, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=datetime.timezone.utc)
 
-        # ---------------- Audio tracks & videos ----------------
+        #Audio tracks & videos 
         n_videos = N_VIDEOS * SCALE
-        n_tracks = max(1, n_videos // 50)  # ~50,000 clips per trending sound, scaled down
+        n_tracks = max(1, n_videos // 50)  # like ~50,000 clips per trending sound, scaled down
         for tid in range(1, n_tracks + 1):
             is_licensed = random.random() < 0.4
             cur.execute(
@@ -187,7 +187,7 @@ def main():
                 htag_id = cur.execute("SELECT hashtag_id FROM Hashtag WHERE tag_text = ?", (tag,)).fetchone()[0]
                 cur.execute("INSERT OR IGNORE INTO VideoHashtag(video_id, hashtag_id) VALUES (?,?)", (vid, htag_id))
 
-        # ---------------- Social graph ----------------
+        # Social graph
         for _ in range(n_users * 3):
             a, b = random.sample(range(1, n_users + 1), 2)
             start = random_ts(days_span=500)
@@ -206,7 +206,7 @@ def main():
             cur.execute("INSERT OR IGNORE INTO Mute(muter_id, muted_id, muted_at) VALUES (?,?,?)",
                         (a, b, iso(random_ts())))
 
-        # ---------------- Watch telemetry (the funnel) ----------------
+        # Watch telemetry (the funnel) 
         # Realistic funnel: most impressions -> no view; most views -> no signal.
         n_impressions = N_IMPRESSIONS * SCALE
         impression_id = 1
@@ -271,7 +271,7 @@ def main():
                                     (ni_id, vid, uid, sig_ts)); ni_id += 1
             impression_id += 1
 
-        # ---------------- Agent layer ----------------
+        #  Agent layer 
         cur.execute(
             "INSERT INTO PromptTemplateVersion(template_version_id, template_name, version_no, template_text, created_at) VALUES (1,'explainer',13,'v13 text...', ?)",
             (iso(EPOCH),),
